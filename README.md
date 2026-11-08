@@ -1,4 +1,4 @@
-# Surah Compass 3.2.1
+# Surah Compass 3.3
 
 A Quran discovery, reading and learning app built with plain HTML, CSS and JavaScript. A stationary 114-Surah dial with a rotating ornamental clock hand, a reader-facing Quran catalogue with a tooled cover and curved page turns, and dedicated Reader, Journey and Settings pages. Warm parchment/taupe and midnight blue themes, readable typography, Islamic geometric ornament, and no gradients or generated imagery. The supplied blue/gold background belongs only to the home content below the solid sticky navbar. The supplied Quran calligraphy is used unchanged in the logo, favicon, installed-app icons and loading indicators.
 
@@ -10,7 +10,7 @@ On Windows, double-click **START-OFFLINE.bat**, or run:
 npm run dev
 ```
 
-Open **http://localhost:3000**. No npm install is needed. Node 20+ runs the server with built-in modules and the app has no dependencies. Opening **index.html** directly also works for the basic app; localhost/HTTPS provides the most reliable offline cache, audio packs, browser storage, encryption and installation support.
+Open **http://localhost:3000**. No npm install is needed. Node 20+ builds and serves the app with built-in modules and no npm package dependencies. The local server uses the same generated pages as the Vercel deployment; run the build again after editing source files. Opening **index.html** directly also works for the basic app; localhost/HTTPS provides the most reliable offline cache, audio packs, browser storage, encryption and installation support.
 
 ## Features
 
@@ -18,7 +18,8 @@ Open **http://localhost:3000**. No npm install is needed. Node 20+ runs the serv
 
 - A smaller ornamental clock hand rotates from the central spin button over a stationary SVG dial: 11 rotations over 6.8 seconds with smooth deceleration. Light/dark themes and reduced-motion support.
 - Optional quiet clock ticks and completion chime, with one saved sound toggle. Spoken Surah-name announcements have been removed. Scholar audio translations remain in the reader.
-- The Surahs tab presents a Quran catalogue without a stand. Mouse movement gently tilts the book. Click to open the Bismillah introduction, then browse two-page spreads: Surah 1 on the right and 2 on the left, then 3 right and 4 left, through 113 and 114. Forward turns move from left to right in either interface language, with sixteen bent strips forming the curl. Complete directory details use growing pages instead of nested scrolling. Click the left page to advance and the right page to go back; Enter/Space on a focused page follows the same direction. Its explicit Open Surah button opens the reader. Use previous/next, direct Surah jump, keyboard or swipe navigation.
+- The Surahs tab presents a Quran catalogue without a stand. Mouse movement gently tilts the book. Click to open the Bismillah introduction, then browse two-page spreads: Surah 1 on the right and 2 on the left, then 3 right and 4 left, through 113 and 114. Forward turns move from left to right in either interface language, with sixteen bent strips forming the curl. Medium desktop proportions and compact mobile pages have bounded heights. Compact pages retain readable names and Ayah/Juz counts; the reader and static chapter profiles provide full details. Click the left page to advance and the right page to go back; Enter/Space on a focused page follows the same direction. Its explicit Open Surah button opens the reader. Use previous/next, direct Surah jump, keyboard or swipe navigation.
+- Successful user page flips play a short offline paper rustle. No spoken voice or playback controls are added. The sound stops on interruption, page exit or a hidden tab.
 - A long red ribbon begins in the opening gutter. Drag it above the book to park, then onto either leaf to save that exact Surah and position. It appears on its saved spread and rests in the dock elsewhere. Simple clicks leave the ribbon unchanged. Equivalent save/remove/jump controls support keyboard and touch use. The saved bookmark travels in local/encrypted backups. These pages are a Surah directory; actual Quran verses appear in the dedicated reader when authentic text has been loaded.
 - A persistent shuffled bag gives each of the 114 Surahs one turn per cycle. Selection is reserved before animation and Web Locks coordinate simultaneous tabs on HTTPS/localhost.
 - Advanced spin filters: revelation classification, short/medium/long Surahs, Juz and reading status. Changing a filter never restarts a partly finished global cycle. A depleted filter asks you to change it; after all 114, the next eligible spin begins a fresh cycle.
@@ -34,7 +35,7 @@ Open **http://localhost:3000**. No npm install is needed. Node 20+ runs the serv
 - 25 configured reciters from EveryAyah, including Alafasy, Husary, Minshawi, Abdul Basit, Sudais, Shuraym, Maher and Ghamdi: ayah playback, previous/next, seek, rate and following the current ayah.
 - Separate sourced spoken-translation mode with English/Urdu candidates; accepted translated speech and its downloaded audio remain distinct from recitation.
 - Optional per-Surah audio downloads with progress/cancel, resumable partial packs, offline playback and cached-pack removal. Audio starts only after a user action. Actual source downloads require internet and a source that permits cross-origin caching.
-- Mobile home shows the spinner first. The reader has a fixed compact Play/Pause transport, with optional audio settings, positioned above the bottom navigation.
+- Mobile home shows the spinner first. The reader has a fixed compact Play/Pause transport, with optional audio settings, positioned above the bottom navigation. Desktop audio and reading controls use a compact sticky dock, while the sidebar stays below the navbar with its own scrollable chapter list.
 - Hifz mode: choose an ayah range, hide/reveal its text, repeat a passage, mark memorized ayahs and schedule revision.
 
 ### Your journey
@@ -82,6 +83,18 @@ npm run check-assets
 
 The build validates all JS and the Surah catalogue, publishes only the app assets and generates a content-based service-worker cache revision. The **dist** folder also works on another static host. On a hosted version, visit once and wait for **Offline ready** before disconnecting; install any text/audio packs you need.
 
+## Vercel Analytics and search discovery
+
+The production URL is **https://tilawat-e-quran.vercel.app/** in **site-config.json**. A **SITE_URL** build variable overrides it when using a custom domain. Without a configured URL, the build can infer the Vercel production project URL; it never treats a preview URL as the canonical production domain.
+
+This plain HTML app uses Vercel's generic Web Analytics script through **analytics.js**. A package import is unnecessary here. In the Vercel project, open **Analytics**, enable **Web Analytics**, then deploy this update. The host provides **/_vercel/insights/script.js**; no tracking key is needed. The loader skips localhost/file/offline visits and actual credential-bearing callback URLs, and adds no custom events for personal notes or reading progress. Normal campaigns and search referrals remain eligible for the standard pageview metrics. Analytics endpoints are excluded from the offline cache. Set **ANALYTICS_ENABLED=false** or **analyticsEnabled:false** in site-config.json to omit the loader from generated pages.
+
+The build publishes 114 static chapter profiles, a chapter directory, FAQ and About/Sources pages, plus the homepage: **118 sitemap URLs**. Chapter pages contain their actual catalogue metadata and labelled editorial introductions. They do not pretend to contain an unavailable Quran/tafsir corpus. Each page has descriptive metadata, canonical/social URLs and appropriate JSON-LD. Visible FAQ answers and structured answers agree. Hash-based reader views share the homepage canonical; they are not separate sitemap pages. **llms.txt** is a factual directory for tools that choose to read it, not a ranking mechanism.
+
+After deployment, make production pages public, verify the site in Google Search Console and Bing Webmaster Tools, submit **https://tilawat-e-quran.vercel.app/sitemap.xml**, and inspect the homepage plus a few chapter URLs. Preview builds use noindex and disallow crawling, and omit analytics. FAQ schema does not guarantee FAQ rich results; search and answer-engine rankings depend on indexing, usefulness, authority and other external factors.
+
+The supplied background is compressed as WebP and the UI logo uses a small transparent variant. The original supplied artwork is retained in the source. The share card is a native graphic made with the supplied logo. These assets are already prepared; normal build/deployment does not require an image library.
+
 ## Optional account/cloud backup
 
 Local file transfer already carries your progress between devices. To enable the optional account-backed cloud flow:
@@ -109,6 +122,6 @@ Meaningful tests execute the production selection engine, storage, app handlers,
 
 ## Privacy and conventions
 
-No tracking or ads. Local progress is stored on the device, and clearing browser data removes it. Export a backup to preserve it. When storage writes are rejected, the current session continues in memory; those changes cannot survive closing the app.
+No ads. Hosted visits use Vercel Web Analytics for visitor and pageview metrics. Personal notes and reading progress are not sent as custom analytics events. Local progress is stored on the device, and clearing browser data removes it. Export a backup to preserve it. When storage writes are rejected, the current session continues in memory; those changes cannot survive closing the app.
 
 Editorial introductions and prompts are navigation/study aids, not tafsir, Quran translations, religious rulings or sourced revelation-occasion reports. Tafsir links open the referenced commentary online. The random compass selection is for discovery and carries no predictive religious meaning.

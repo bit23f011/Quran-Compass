@@ -30,12 +30,13 @@ function lockQueue() {
   return { request(_name, action) { const result = tail.then(action); tail = result.catch(() => {}); return result; } };
 }
 
-function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), onGet, withLearning = false, hash = '#discover', reducedMotion=true, animation, spinAudio,standalone=false,navigatorStandalone=false,userAgent='',platform='',maxTouchPoints=0,protocol='file:' } = {}) {
+function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), onGet, withLearning = false, hash = '#discover', reducedMotion=true, animation, spinAudio,standalone=false,navigatorStandalone=false,userAgent='',platform='',maxTouchPoints=0,protocol='file:',readerAtStartup=true,mushafAtStartup=true } = {}) {
   const writes = [];
   const errors=[];
   const events = new Map();
   const elements = new Map();
   const idb = { puts: 0, pack: undefined };
+  const historyCalls=[];
   let focused;
   class Element {
     constructor(id) {
@@ -50,11 +51,14 @@ function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), o
     addEventListener(name, fn) { const fns = this.listeners.get(name) || []; fns.push(fn); this.listeners.set(name, fns); }
     setAttribute(name, value) { this.attributes.set(name, String(value)); }
     getAttribute(name) { return this.attributes.get(name) ?? null; }
+    removeAttribute(name) { this.attributes.delete(name); }
     set innerHTML(value) { this._html = value; for (const match of String(value).matchAll(/\bid="([^"]+)"/g)) if (!elements.has(match[1])) elements.set(match[1], new Element(match[1])); if(this.tagName==='SELECT'){this.options=[...String(value).matchAll(/<option\b[^>]*value="([^"]*)"[^>]*>([^<]*)<\/option>/g)].map(m=>({value:m[1],textContent:m[2],dataset:{}}));if(!this.options.some(o=>o.value===this.value))this.value=this.options[0]?.value||'';} }
     get innerHTML() { return this._html || ''; }
     showModal() { this.open = true; }
     close() { this.open = false; for (const fn of this.listeners.get('close') || []) fn({ target: this }); }
-    focus() { focused = this; }
+    focus(options) { focused = this; this.lastFocus=options; }
+    contains(element) { return element===this||element?.parent===this; }
+    querySelector(selector) { if(selector!=='h1')return null;return elements.get({'discover-view':'hero-title','library-view':'library-title','mushaf-view':'mushaf-title','reader-view':'reader-page-title'}[this.id])||null; }
     click() { return this.emit('click'); }
     scrollTo(options) { this.scrollTop = options.top; }
     getBoundingClientRect() { return { left: 0, top: 0, right: 700, bottom: 800 }; }
@@ -62,6 +66,7 @@ function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), o
   }
   for (const match of index.matchAll(/\bid="([^"]+)"/g)) elements.set(match[1], new Element(match[1]));
   for(const id of ['spin-sound-toggle','spin-sound-label','install-app-button','install-app-label'])if(!elements.has(id))elements.set(id,new Element(id));
+  for(const id of ['main-content','skip-to-main','mushaf-title','reader-page-title'])if(!elements.has(id))elements.set(id,new Element(id));
   function el(id) { const result = elements.get(id); if (!result) throw new Error(`Missing DOM fixture for ${id}`); return result; }
   if(animation)el('clock-hand').animate=animation;
   for(const match of index.matchAll(/<select\b[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/select>/g)){const select=el(match[1]);select.tagName='SELECT';select.innerHTML=match[2];}
@@ -77,7 +82,7 @@ function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), o
   const documentElement = new Element('html'); documentElement.dataset.theme = 'light';
   const body = new Element('body'); focused = body;
   const document = {
-    getElementById: el, documentElement, body,
+    getElementById:id=>elements.get(id)||null, documentElement, body,
     get activeElement() { return focused; },
     querySelector(selector) { if (selector === '.progress-track') return progress; if (selector === '.brand') return brand; if (selector === '.detail-tabs') return tabs; if (selector === 'meta[name=theme-color]') return meta; if (selector === 'dialog[open]') return dialogs.find(d => d.open) || null; throw new Error(`Unexpected DOM selector: ${selector}`); },
     querySelectorAll(selector) { if (selector === '.wheel-segment') return segments; if (selector === '[data-view]') return nav; if (selector === '[data-i18n]') return i18n; if (selector === '[data-search-scope]') return scopeButtons; if (selector === 'dialog') return dialogs; if (selector === '[data-close]') return []; throw new Error(`Unexpected DOM selector list: ${selector}`); },
@@ -90,6 +95,8 @@ function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), o
   const window = { addEventListener(name, fn) { const list=globalListeners.get(name)||[];list.push(fn);globalListeners.set(name,list);events.set(`window:${name}`,fn); }, dispatchEvent(event) { for(const fn of globalListeners.get(event.type)||[])fn(event);return true; } };
   const readerOpenCalls=[];let mushafOpens=0;
   let stopCalls=0,exitFocusCalls=0;
+  const readerModule={open(id,ayah){readerOpenCalls.push([id,ayah]);},stopAudio(){stopCalls++;},exitFocus(){exitFocusCalls++;}};
+  const mushafModule={open(){mushafOpens++;}};
   const indexedDB = { open() { const request = {}; const db = {
     createObjectStore() {}, close() {},
     transaction() { const tx = { objectStore() { return {
@@ -101,8 +108,8 @@ function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), o
     document, window, indexedDB,
     addEventListener:window.addEventListener,dispatchEvent:window.dispatchEvent,
     CustomEvent:class CustomEvent {constructor(type,options={}){this.type=type;this.detail=options.detail;}},
-    CompassReader:{open(id,ayah){readerOpenCalls.push([id,ayah]);},stopAudio(){stopCalls++;},exitFocus(){exitFocusCalls++;}},
-    CompassMushaf:{open(){mushafOpens++;}},
+    CompassReader:readerAtStartup?readerModule:undefined,
+    CompassMushaf:mushafAtStartup?mushafModule:undefined,
     CompassSpinAudio:spinAudio,
     navigator: { locks, standalone:navigatorStandalone,userAgent,platform,maxTouchPoints,clipboard: { async writeText() {} } },
     localStorage: {
@@ -111,7 +118,7 @@ function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), o
       ,removeItem(key){store.delete(key);}
     },
     location: { protocol, hash },
-    history: { replaceState() {} },
+    history: { replaceState(_state,_title,url) {historyCalls.push(['replace',url]);context.location.hash=url.includes('#')?url.slice(url.indexOf('#')):'';},pushState(_state,_title,url){historyCalls.push(['push',url]);context.location.hash=url.includes('#')?url.slice(url.indexOf('#')):'';} },
     matchMedia: query => query==='(display-mode: standalone)'?installDisplay:{ matches: reducedMotion },
     setTimeout: () => 1, clearTimeout() {},
     console:{...console,error(...args){errors.push(args);}}, Uint32Array, crypto: globalThis.crypto,
@@ -123,7 +130,8 @@ function mount({ store = new Map(), rejectWrites = false, locks = lockQueue(), o
   vm.runInContext(source, context, { filename: 'app.js' });
   const ready = (async () => { for (let i = 0; i < 8; i++) await Promise.resolve(); })();
   return {
-    el, store, writes, idb, ready, segments, events,context,i18n,scopeButtons,readerOpenCalls,globalListeners,errors,installDisplay,
+    el, store, writes, idb, ready, segments, events,context,i18n,scopeButtons,readerOpenCalls,globalListeners,errors,installDisplay,nav,brand,historyCalls,readerModule,mushafModule,
+    focused:()=>focused,
     audioStops:()=>stopCalls,focusExits:()=>exitFocusCalls,mushafOpens:()=>mushafOpens,
     async spin() { el('surah-dialog').close(); await el('spin-button').emit('click'); const id = Number(el('detail-kicker').textContent.match(/SURAH (\d+)/)?.[1]); assert.ok(id >= 1 && id <= 114, 'Production handler should open the selected Surah'); return id; },
     state() { return JSON.parse(store.get(STATE_KEY)); }
@@ -457,6 +465,67 @@ test('Surahs navigation opens the physical catalogue and hides other primary vie
   app.context.CompassApp.navigate('library');
   assert.equal(app.el('mushaf-view').hidden,true);
   assert.equal(app.el('library-view').hidden,false);
+});
+
+test('explicit navigation marks its active page, preserves usable history, and focuses the visible heading',async()=>{
+  const app=mount({withLearning:true});await app.ready;
+  assert.equal(app.focused(),app.context.document.body,'Initial rendering does not steal focus.');
+  assert.equal(app.nav.find(button=>button.dataset.view==='discover').getAttribute('aria-current'),'page');
+  await app.nav.find(button=>button.dataset.view==='library').emit('click');
+  assert.equal(app.context.location.hash,'#library');assert.deepEqual(app.historyCalls.at(-1),['push','#library']);assert.equal(app.focused(),app.el('library-title'));assert.equal(app.el('library-title').lastFocus.preventScroll,true);
+  assert.equal(app.nav.find(button=>button.dataset.view==='library').getAttribute('aria-current'),'page');assert.equal(app.nav.find(button=>button.dataset.view==='discover').getAttribute('aria-current'),null);
+  let prevented=false;await app.brand.emit('click',{preventDefault(){prevented=true;}});
+  assert.equal(prevented,true);assert.equal(app.context.location.hash,'#discover');assert.equal(app.context.CompassApp.view(),'discover');assert.equal(app.focused(),app.el('hero-title'));
+});
+
+test('known hash and back/forward routes select the requested ayah without duplicate navigation or playback opens',async()=>{
+  const app=mount({withLearning:true});await app.ready;const changes=[];app.context.addEventListener('compass:navigation',event=>changes.push(event.detail.view));
+  app.context.location.hash='#reader/112/3';app.context.dispatchEvent(new app.context.CustomEvent('hashchange'));app.context.dispatchEvent(new app.context.CustomEvent('popstate'));
+  assert.deepEqual(app.readerOpenCalls,[[112,3]]);assert.deepEqual(changes,['reader']);assert.equal(app.focused(),app.el('reader-page-title'));assert.equal(app.context.location.hash,'#reader/112/3');assert.equal(app.historyCalls.length,0,'History events cannot create another history entry.');
+  app.context.location.hash='#reader/112/4';app.context.dispatchEvent(new app.context.CustomEvent('popstate'));app.context.dispatchEvent(new app.context.CustomEvent('hashchange'));
+  assert.deepEqual(app.readerOpenCalls,[[112,3],[112,4]]);assert.deepEqual(changes,['reader','reader']);
+  app.context.location.hash='#mushaf';app.context.dispatchEvent(new app.context.CustomEvent('hashchange'));app.context.dispatchEvent(new app.context.CustomEvent('popstate'));assert.equal(app.mushafOpens(),1);assert.equal(changes.at(-1),'mushaf');
+});
+
+test('late reader and book hydration uses the latest hash and emits no duplicate or stale route event',async()=>{
+  const app=mount({hash:'#reader/1/2',readerAtStartup:false});await app.ready;assert.equal(app.context.CompassApp.view(),'reader');assert.equal(app.focused(),app.context.document.body);
+  const changes=[];app.context.addEventListener('compass:navigation',event=>changes.push(event.detail.view));
+  app.context.location.hash='#reader/2/5';app.context.dispatchEvent(new app.context.CustomEvent('hashchange'));assert.equal(app.readerOpenCalls.length,0);
+  app.context.CompassReader=app.readerModule;app.events.get('document:DOMContentLoaded')();app.events.get('document:DOMContentLoaded')();
+  assert.deepEqual(app.readerOpenCalls,[[2,5]]);assert.deepEqual(changes,['reader']);assert.equal(app.context.location.hash,'#reader/2/5');
+  const book=mount({hash:'#mushaf',mushafAtStartup:false});await book.ready;book.context.CompassMushaf=book.mushafModule;book.events.get('document:DOMContentLoaded')();book.events.get('document:DOMContentLoaded')();assert.equal(book.mushafOpens(),1);
+});
+
+test('skip-to-main anchors and keyboard activation keep the active reader and its audio lifecycle intact',async()=>{
+  const app=mount();await app.ready;app.context.CompassApp.navigate('reader',{surahId:112,ayah:2});const opens=app.readerOpenCalls.length,stops=app.audioStops(),changes=[];
+  app.context.addEventListener('compass:navigation',event=>changes.push(event.detail.view));
+  app.context.location.hash='#main-content';app.context.dispatchEvent(new app.context.CustomEvent('hashchange'));app.context.dispatchEvent(new app.context.CustomEvent('popstate'));
+  assert.equal(app.context.CompassApp.view(),'reader');assert.equal(app.readerOpenCalls.length,opens);assert.equal(app.audioStops(),stops);assert.deepEqual(changes,[]);
+  let prevented=false;await app.el('skip-to-main').emit('click',{detail:0,preventDefault(){prevented=true;}});
+  assert.equal(prevented,true);assert.equal(app.focused(),app.el('main-content'));assert.equal(app.el('main-content').lastFocus.preventScroll,true);assert.equal(app.context.location.hash,'#main-content');
+});
+
+test('cloud token and error fragments survive startup, route events and sync-directed navigation without being rewritten',async()=>{
+  for(const hash of ['#access_token=software-fixture&refresh_token=software-fixture','#refresh_token=software-fixture','#error=access_denied&error_description=software-fixture','#error_description=software-fixture']){
+    const app=mount({hash});await app.ready;assert.equal(app.context.location.hash,hash);assert.equal(app.historyCalls.length,0);
+    app.context.CompassApp.navigate('settings');app.context.dispatchEvent(new app.context.CustomEvent('hashchange'));app.context.dispatchEvent(new app.context.CustomEvent('popstate'));app.events.get('document:DOMContentLoaded')();
+    assert.equal(app.context.CompassApp.view(),'settings');assert.equal(app.context.location.hash,hash);assert.equal(app.historyCalls.length,0,'Cloud credentials remain available until the sync module consumes them.');
+  }
+});
+
+test('malformed reader and unrelated fragments are ignored while input search and language refresh retain focus',async()=>{
+  const app=mount({withLearning:true});await app.ready;app.context.CompassApp.navigate('library');app.el('surah-search').focus();const changes=[];app.context.addEventListener('compass:navigation',event=>changes.push(event.detail.view));
+  for(const hash of ['#unrelated-section','#reader/115/1','#reader/1/8','#reader/1/nope','#library/extra']){app.context.location.hash=hash;app.context.dispatchEvent(new app.context.CustomEvent('hashchange'));assert.equal(app.context.CompassApp.view(),'library');assert.equal(app.context.location.hash,hash);}
+  await app.el('surah-search').emit('input');app.context.CompanionStore.updateSettings({uiLanguage:'ur'});assert.equal(app.focused(),app.el('surah-search'));assert.deepEqual(changes,[]);
+  app.context.CompassApp.navigate('reader',{surahId:1,ayah:2});app.el('reader-view').focus();app.context.CompassApp.navigate('reader',{surahId:1,ayah:3});assert.equal(app.focused(),app.el('reader-view'),'Changing a reader ayah does not move keyboard focus to the page heading.');
+  app.context.CompassApp.navigate('library');app.events.get('document:keydown')({key:'/',preventDefault(){}});assert.equal(app.focused(),app.el('surah-search'),'The search shortcut finishes on its input.');
+});
+
+test('home heading and introduction describe the Quran directory and source-loading options honestly in both interface languages',async()=>{
+  const app=mount({withLearning:true});await app.ready;
+  assert.equal(app.el('hero-title').innerHTML,'Explore all 114<br><em>Surahs of the Quran.</em>');assert.match(app.el('intro-copy').innerHTML,/repeat-free spin/);assert.match(app.el('intro-copy').innerHTML,/load sourced Arabic text, translations and recitation/);
+  app.context.CompanionStore.updateSettings({uiLanguage:'ur'});assert.match(app.el('hero-title').innerHTML,/قرآن کی تمام ۱۱۴/);assert.match(app.el('intro-copy').innerHTML,/ماخذ سے عربی متن، تراجم اور تلاوت شامل کریں/);
+  assert.equal(Object.keys(app.context.QURAN).length,0,'Descriptive copy does not depend on pretending an absent text pack exists.');
 });
 
 test('Arabic ayah search ignores alef-wasla and Quran annotation marks in the installed text', async () => {

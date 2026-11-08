@@ -1,6 +1,6 @@
 {
   "name": "surah-compass",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "private": true,
   "description": "An offline-friendly, repeat-free compass for all 114 Surahs of the Quran.",
   "scripts": {
@@ -8,7 +8,7 @@
     "start": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "check-assets": "node scripts/check-assets.mjs",
-    "test": "node --test --test-reporter=spec tests/verify.cjs tests/filters.cjs tests/store.cjs tests/app-integration.cjs tests/encryption.cjs tests/reader.cjs tests/sync.cjs tests/content.cjs tests/mushaf.cjs tests/spin-audio.cjs",
+    "test": "node --test --test-reporter=spec tests/verify.cjs tests/filters.cjs tests/store.cjs tests/app-integration.cjs tests/encryption.cjs tests/reader.cjs tests/sync.cjs tests/content.cjs tests/mushaf.cjs tests/spin-audio.cjs tests/book-audio.cjs tests/analytics.cjs tests/seo.cjs tests/site-settings.cjs",
     "download-quran": "node scripts/download-quran.mjs"
   },
   "engines": { "node": ">=20" }

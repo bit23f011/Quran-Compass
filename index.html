@@ -4,8 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#dcd3c2">
-  <meta name="description" content="A quiet way to explore all 114 Surahs of the Holy Quran. A beautiful, repeat-free Surah wheel with offline access.">
-  <title>Surah Compass | A moment with the Quran</title>
+  <!-- site-meta:start -->
+  <title>Surah Compass | Explore All 114 Quran Surahs</title>
+  <meta name="description" content="Explore all 114 Quran Surahs with a repeat-free random Surah wheel, chapter introductions, bookmarks and a reader with sourced text and audio options.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Surah Compass">
+  <meta property="og:title" content="Surah Compass | Explore All 114 Quran Surahs">
+  <meta property="og:description" content="Discover Quran chapters with a repeat-free Surah wheel, sourced study introductions and reading tools.">
+  <meta property="og:image" content="/assets/social-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Surah Compass: explore all 114 Surahs of the Quran">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Surah Compass | Explore All 114 Quran Surahs">
+  <meta name="twitter:description" content="A random Surah wheel, chapter introductions and Quran reading tools.">
+  <meta name="twitter:image" content="/assets/social-preview.png">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Surah Compass","applicationCategory":"EducationalApplication","operatingSystem":"Any","isAccessibleForFree":true,"description":"Explore all 114 Quran chapters with a repeat-free discovery wheel and sourced study introductions. Quran text and audio packs can be downloaded separately for offline reading and listening."}</script>
+  <!-- site-meta:end -->
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon.png" type="image/png" sizes="64x64">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
@@ -31,14 +47,17 @@
   <script src="store.js" defer></script>
   <script src="content.js" defer></script>
   <script src="spin-audio.js" defer></script>
+  <script src="book-audio.js" defer></script>
   <script src="app.js" defer></script>
   <script src="reader.js" defer></script>
   <script src="mushaf.js" defer></script>
   <script src="sync.js" defer></script>
   <script src="learning.js" defer></script>
+  <script src="analytics.js" defer></script>
 </head>
 <body>
-  <div class="app-loader" id="app-loader" role="status" aria-live="polite"><span class="app-loader-mark"><img src="assets/brand-logo.png" width="104" height="104" alt=""></span><span id="app-loader-label">Opening Surah Compass…</span></div>
+  <a class="skip-to-main" id="skip-to-main" href="#main-content">Skip to main content</a>
+  <div class="app-loader" id="app-loader" role="status" aria-live="polite"><span class="app-loader-mark"><img src="assets/brand-mark.png" width="104" height="104" alt=""></span><span id="app-loader-label">Opening Surah Compass…</span></div>
   <svg class="icon-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3 5 5-1-1 5 3 1-3 3 1 5-5-1-3 3-3-3-5 1 1-5-3-3 3-1-1-5 5 1Z"/><path d="m12 7 5 5-5 5-5-5Z"/></symbol>
     <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6C9 3 5 3 2 4v14c4-1 7 0 10 2 3-2 6-3 10-2V4c-3-1-7-1-10 2Zm0 0v14M5 8c2 0 3 .5 4 1m6 0c1-.5 2-1 4-1M5 12c2 0 3 .5 4 1m6 0c1-.5 2-1 4-1"/></symbol>
@@ -58,17 +77,19 @@
   </svg>
   <div class="site-shell">
     <header class="site-header">
-      <a class="brand" href="#discover" aria-label="Surah Compass home"><span class="brand-mark"><img src="assets/brand-logo.png" width="60" height="60" alt="Quran calligraphy logo"></span><span>Surah Compass<small data-i18n="brandTagline">A MOMENT WITH THE QURAN</small></span></a>
+      <a class="brand" href="#discover" aria-label="Surah Compass home"><span class="brand-mark"><img src="assets/brand-mark.png" width="60" height="60" alt="Quran calligraphy logo"></span><span>Surah Compass<small data-i18n="brandTagline">A MOMENT WITH THE QURAN</small></span></a>
       <nav aria-label="Main navigation"><button class="nav-link active" data-view="discover"><svg class="icon"><use href="#i-star"/></svg><span class="nav-label" data-i18n="discover">Discover</span></button><button class="nav-link" data-view="mushaf"><svg class="icon"><use href="#i-book"/></svg><span class="nav-label" data-i18n="surahs">Surahs</span></button><button class="nav-link" data-view="reader"><svg class="icon"><use href="#i-book"/></svg><span class="nav-label" data-i18n="reader">Reader</span></button><button class="nav-link" data-view="library"><svg class="icon"><use href="#i-search"/></svg><span class="nav-label" data-i18n="search">Search</span></button><button class="nav-link" data-view="journey"><svg class="icon"><use href="#i-chart"/></svg><span class="nav-label" data-i18n="journey">Journey</span></button><button class="nav-link saved-nav" data-view="saved"><svg class="icon"><use href="#i-heart"/></svg><span class="nav-label" data-i18n="saved">Saved</span><span id="saved-count">0</span></button><button class="nav-link" data-view="settings"><svg class="icon"><use href="#i-sliders"/></svg><span class="nav-label" data-i18n="settings">Settings</span></button></nav>
       <div class="header-actions"><button id="install-app-button" class="install-app-button" title="Install Surah Compass" aria-label="Install Surah Compass"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg><span id="install-app-label">Install app</span></button><button id="ui-language-toggle" class="language-toggle" aria-label="Switch interface language">اردو</button><button id="theme-toggle" class="icon-button" aria-label="Switch to dark theme"><svg class="icon"><use href="#i-moon"/></svg></button></div>
     </header>
 
-    <main>
+    <main id="main-content" tabindex="-1">
+      <noscript><p>The interactive wheel needs JavaScript. You can still browse <a href="/surahs/">all 114 Surahs</a>, read the <a href="/faq/">FAQ</a>, and review <a href="/about/">sources</a>.</p></noscript>
       <section id="discover-view" class="discover-layout" aria-labelledby="hero-title">
         <div class="intro-panel">
           <div class="eyebrow"><span class="little-line"></span><span data-i18n="eyebrow">114 CHAPTERS. ENDLESS REFLECTION.</span></div>
-          <h1 id="hero-title">A little pause.<br><em>A deeper<br class="desktop-break"> connection.</em></h1>
-          <p class="intro-copy" id="intro-copy">Let curiosity bring you closer to the Quran.<br class="desktop-break"> Spin the compass, discover a Surah, and<br class="desktop-break"> make a little space for reflection.</p>
+          <h1 id="hero-title">Explore all 114<br><em>Surahs of the Quran.</em></h1>
+          <p class="intro-copy" id="intro-copy">Spin without repeats, explore chapter introductions, and use a reader with sourced Quran text, translations and audio options.</p>
+          <p class="home-resource-links"><a href="/surahs/">All 114 Surahs</a><a href="/faq/">How it works</a><a href="/about/">About & Sources</a></p>
           <button class="primary-button" id="discover-spin"><span data-i18n="discoverButton">Discover a Surah</span><svg class="icon"><use href="#i-arrow"/></svg></button>
           <button class="resume-home" id="resume-home" hidden><svg class="icon"><use href="#i-book"/></svg><span><small data-i18n="continueReading">CONTINUE READING</small><strong id="resume-home-label"></strong></span><svg class="icon"><use href="#i-arrow"/></svg></button>
           <div class="progress-card">
@@ -124,7 +145,7 @@
   </dialog>
 
   <dialog class="small-dialog" id="reset-dialog" aria-labelledby="reset-title"><div class="small-dialog-icon"><svg class="icon"><use href="#i-reset"/></svg></div><h2 id="reset-title">Begin a fresh journey?</h2><p>All 114 Surahs will return to the compass. Your saved Surahs will stay with you.</p><div class="dialog-actions"><button class="secondary-button" data-close="reset-dialog">Keep exploring</button><button class="primary-button" id="confirm-reset">Reset journey</button></div></dialog>
-  <dialog class="small-dialog about-dialog" id="about-dialog" aria-labelledby="about-title"><button class="icon-button dialog-close" data-close="about-dialog" aria-label="Close about dialog"><svg class="icon"><use href="#i-close"/></svg></button><div class="small-dialog-icon"><svg class="icon"><use href="#i-star"/></svg></div><h2 id="about-title">A compass for curiosity.</h2><p>A gentle invitation to explore, read, listen, and reflect on the 114 Surahs of the Quran. Random selections never repeat within a cycle; browsing a Surah does not use a spin.</p><h3>Sources & conventions</h3><p>The catalogue follows the common 6,236-ayah numbering. Revelation order and Meccan/Medinan classifications are conventional and may differ between scholarly sources. Chapter overviews and reflection prompts are study introductions, not tafsir. Detailed tafsir references open on Quran.com.</p><h3>Offline Quran reading</h3><p id="pack-status">The Surah catalogue works offline. Download Arabic ayahs and English/Urdu translations once to read offline.</p><div class="pack-actions"><button class="primary-button" id="download-pack"><svg class="icon"><use href="#i-download"/></svg> Download reading pack</button><button class="secondary-button" id="import-pack">Import a pack</button><input type="file" id="pack-file" accept=".json,application/json" hidden></div><p class="source-links">One-time text download from <a href="https://github.com/risan/quran-json" target="_blank" rel="noopener noreferrer">Quran JSON</a> via jsDelivr · English: Sahih International · Urdu: Fateh Muhammad Jalandhry. Audio: <a href="https://everyayah.com" target="_blank" rel="noopener noreferrer">EveryAyah</a>.</p><p class="privacy-note">No tracking or ads. Your journey is local by default; cloud backups are optional when enabled. Clearing browser data removes local progress and packs. Backups protect your notes and progress.</p></dialog>
+  <dialog class="small-dialog about-dialog" id="about-dialog" aria-labelledby="about-title"><button class="icon-button dialog-close" data-close="about-dialog" aria-label="Close about dialog"><svg class="icon"><use href="#i-close"/></svg></button><div class="small-dialog-icon"><svg class="icon"><use href="#i-star"/></svg></div><h2 id="about-title">A compass for curiosity.</h2><p>A gentle invitation to explore, read, listen, and reflect on the 114 Surahs of the Quran. Random selections never repeat within a cycle; browsing a Surah does not use a spin.</p><h3>Sources & conventions</h3><p>The catalogue follows the common 6,236-ayah numbering. Revelation order and Meccan/Medinan classifications are conventional and may differ between scholarly sources. Chapter overviews and reflection prompts are study introductions, not tafsir. Detailed tafsir references open on Quran.com.</p><h3>Offline Quran reading</h3><p id="pack-status">The Surah catalogue works offline. Download Arabic ayahs and English/Urdu translations once to read offline.</p><div class="pack-actions"><button class="primary-button" id="download-pack"><svg class="icon"><use href="#i-download"/></svg> Download reading pack</button><button class="secondary-button" id="import-pack">Import a pack</button><input type="file" id="pack-file" accept=".json,application/json" hidden></div><p class="source-links">One-time text download from <a href="https://github.com/risan/quran-json" target="_blank" rel="noopener noreferrer">Quran JSON</a> via jsDelivr · English: Sahih International · Urdu: Fateh Muhammad Jalandhry. Audio: <a href="https://everyayah.com" target="_blank" rel="noopener noreferrer">EveryAyah</a>.</p><p class="privacy-note">Hosted visits use Vercel Web Analytics for visitor and pageview metrics. Personal notes and reading progress are not custom analytics events. Your journey is local by default; cloud backups are optional when enabled. Clearing browser data removes local progress and packs. Backups protect your notes and progress.</p></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <noscript><p class="noscript-message">Please enable JavaScript to use the Surah compass.</p></noscript>
 </body>

@@ -29,7 +29,7 @@ function mount({text={1:fixtureVerses()},storage=new Map(),rejectWrites=false,ca
     get innerHTML(){return this._html;}
     addEventListener(name,callback){const callbacks=this.listeners.get(name)||[];callbacks.push(callback);this.listeners.set(name,callbacks);}
     setAttribute(name,value){this.attributes.set(name,String(value));}getAttribute(name){return this.attributes.get(name)??null;}removeAttribute(name){this.attributes.delete(name);}
-    showModal(){this.open=true;}close(){this.open=false;for(const callback of this.listeners.get('close')||[])callback({target:this});}focus(){}scrollIntoView(options){this.lastScroll=options;}
+    showModal(){this.open=true;}close(){this.open=false;for(const callback of this.listeners.get('close')||[])callback({target:this});}focus(){this.wasFocused=true;}scrollIntoView(options){this.lastScroll=options;}
     getBoundingClientRect(){return {left:0,top:0,right:700,bottom:800};}
     matches(selector){const attribute=selector.match(/^\[([^\]=]+)(?:="([^\"]*)")?\]$/);if(attribute){if(attribute[1].startsWith('data-')){const key=dataKey(attribute[1].slice(5));return key in this.dataset&&(attribute[2]===undefined||this.dataset[key]===attribute[2]);}return this.attributes.has(attribute[1]);}return selector.startsWith('.')&&this.classList.contains(selector.slice(1));}
     closest(selector){return this.matches(selector)?this:null;}
@@ -187,6 +187,21 @@ test('compact mobile transport exposes Pause, preserves its source and time acro
   await app.el('reader-page-next').emit('click');await app.el('reader-audio-settings-toggle').emit('click');assert.equal(app.el('reader-audio-settings-toggle').getAttribute('aria-expanded'),'true');assert.equal(app.root.classList.contains('reader-audio-settings-open'),true);
   await app.el('reader-audio-play').emit('click');assert.equal(app.audio.src,source);assert.equal(app.audio.currentTime,2.25);assert.equal(app.audio.paused,false);assert.equal(app.el('reader-audio-play').getAttribute('aria-label'),'Pause');
   assert.equal(app.fetchCalls.length,0);
+});
+
+test('audio settings collapse at every width and keyboard dismissal preserves active playback and reader preferences',async()=>{
+  const app=mount();await flush();assert.equal(app.el('reader-audio-settings').hidden,true);assert.equal(app.el('reader-audio-settings-toggle').getAttribute('aria-expanded'),'false');
+  const html=app.root.innerHTML,dock=html.indexOf('id="reader-controls-dock"'),audio=html.indexOf('class="reader-audio-bar"'),toolbar=html.indexOf('class="reader-toolbar"'),pages=html.indexOf('id="reader-page-navigation"'),chapter=html.indexOf('class="reader-chapter-heading"');
+  assert.ok(dock<audio&&audio<toolbar&&toolbar<pages&&pages<chapter,'Transport, reading toolbar and page navigation share one dock before the chapter body.');
+  assert.match(readerStyles,/\.reader-controls-dock\{position:sticky;top:calc\(var\(--header-offset,90px\) \+ 8px\)/);
+  assert.match(readerStyles,/\.reader-sidebar\{position:sticky;[^}]*height:calc\(100dvh - var\(--header-offset,90px\) - 36px\)/);
+  assert.match(readerStyles,/\.reader-sidebar-list\{flex:1;min-height:0;max-height:none;overflow:auto/);
+  await app.el('reader-text').emit('click',{target:app.action('data-reader-play',2)});const source=app.audio.src,plays=app.audio.playCalls.length;app.audio.currentTime=2;
+  const preferences=clone(app.reader.getPreferences());await app.el('reader-audio-settings-toggle').emit('click');assert.equal(app.el('reader-audio-settings').hidden,false);assert.equal(app.el('reader-audio-settings-toggle').getAttribute('aria-expanded'),'true');
+  let stopped=false;await app.el('reader-audio-settings').emit('keydown',{key:'Escape',stopPropagation(){stopped=true;}});
+  assert.equal(stopped,true);assert.equal(app.el('reader-audio-settings').hidden,true);assert.equal(app.el('reader-audio-settings-toggle').wasFocused,true);assert.equal(app.el('reader-audio-settings-toggle').getAttribute('aria-expanded'),'false');
+  assert.equal(app.audio.paused,false);assert.equal(app.audio.src,source);assert.equal(app.audio.currentTime,2);assert.equal(app.audio.playCalls.length,plays);assert.deepEqual(clone(app.reader.getPreferences()),preferences);
+  await app.el('reader-audio-play').emit('click');assert.equal(app.audio.paused,true);await app.el('reader-audio-play').emit('click');assert.equal(app.audio.currentTime,2);assert.equal(app.audio.src,source);
 });
 
 test('a superseded play promise cannot pause a newer active ayah',async()=>{

@@ -1,6 +1,10 @@
 /* Shared layout, with the supplied photograph confined to the home section. */
 :root{--page-gutter:28px;--header-offset:92px;--mobile-nav-height:72px;--mobile-nav-clearance:0px}
 html{scroll-padding-top:calc(var(--header-offset) + 16px)}
+.skip-to-main{position:fixed;inset:8px auto auto 8px;z-index:1001;padding:12px 17px;background:var(--surface);color:var(--text);border:2px solid var(--gold);border-radius:4px;transform:translateY(-160%)}
+.skip-to-main:focus{transform:none}
+.home-resource-links{display:flex;flex-wrap:wrap;gap:10px 20px;margin:0 0 20px;font-size:15px;color:#e0c38e}
+.home-resource-links a{text-decoration:underline;text-underline-offset:4px}
 body{min-width:320px}
 .site-shell,body[data-view=reader] .site-shell{width:100%;max-width:none;padding-inline:var(--page-gutter);margin:0}
 .site-header{position:sticky;top:0;z-index:100;min-height:92px;height:92px;padding:12px var(--page-gutter);margin-inline:calc(-1 * var(--page-gutter));background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 3px 14px #0000000b;gap:22px}
@@ -16,7 +20,7 @@ body{min-width:320px}
 .install-app-button:hover{border-color:var(--gold)}
 .install-app-button .icon{height:18px;width:18px}
 main{min-height:calc(100svh - var(--header-offset) - 73px)}
-#discover-view{margin:0 calc(-1 * var(--page-gutter));padding:38px clamp(24px,4vw,72px) 42px;min-height:calc(100svh - var(--header-offset));border:0;border-radius:0;gap:clamp(28px,4vw,76px);grid-template-columns:minmax(320px,.9fr) minmax(0,1.1fr);background:#071a2e url('assets/home-islamic-bg.png') center right/cover no-repeat;overflow:hidden;isolation:isolate}
+#discover-view{margin:0 calc(-1 * var(--page-gutter));padding:38px clamp(24px,4vw,72px) 42px;min-height:calc(100svh - var(--header-offset));border:0;border-radius:0;gap:clamp(28px,4vw,76px);grid-template-columns:minmax(320px,.9fr) minmax(0,1.1fr);background:#071a2e url('assets/home-islamic-bg.webp') center right/cover no-repeat;overflow:hidden;isolation:isolate}
 #discover-view::before{content:'';position:absolute;inset:0;z-index:-1;display:block;background:#04152365;pointer-events:none}
 #discover-view .intro-panel{width:100%;max-width:570px;padding:0;justify-self:center}
 #discover-view .compass-panel{width:100%;max-width:760px;justify-self:center}
@@ -34,7 +38,7 @@ main{min-height:calc(100svh - var(--header-offset) - 73px)}
 .search-box{max-width:none}
 .reader-main{max-width:none}
 .reader-focus-active{z-index:120}
-.mushaf-navigation{position:sticky;top:var(--header-offset);z-index:20;background:var(--bg)}
+.mushaf-navigation{position:static;background:var(--bg)}
 footer{min-height:73px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:24px;padding:18px 0;margin:0;background:var(--bg);font-size:14px;border-top:1px solid var(--line)}
 footer .text-button,footer .offline-indicator{font-size:14px;line-height:1.5}
 footer .text-button{min-height:36px}

@@ -52,12 +52,12 @@
     $('mushaf-ribbon').addEventListener('keydown',event=>{if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();removeBookmark();}else if(event.key==='Enter'){event.preventDefault();state.bookmark?jumpToBookmark():setBookmark(rightId());}});
     refresh();
   }
-  function openingPage(side){return `${corners()}<div class="mushaf-page-content mushaf-welcome"><div class="mushaf-page-heading-art">${star}</div>${side==='right'?`<span class="mushaf-page-small">${tr('IN THE NAME OF ALLAH','اللہ کے نام سے')}</span><h2 class="mushaf-bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ<br>الرَّحْمَٰنِ الرَّحِيمِ</h2><span class="mushaf-quran-title" lang="ar" dir="rtl">الْقُرْآنُ الْكَرِيمُ</span>`:`<span class="mushaf-page-small">${tr('114 SURAHS · 30 JUZ','۱۱۴ سورتیں · ۳۰ پارے')}</span><h2>${tr('A page for every Surah.','ہر سورت کے لیے ایک صفحہ۔')}</h2><p>${tr('Click the left page for next pages and the right page for previous pages. Use Open Surah to read.','اگلے صفحات کے لیے بائیں صفحے اور پچھلے صفحات کے لیے دائیں صفحے پر کلک کریں۔ مطالعے کے لیے «سورت کھولیں» منتخب کریں۔')}</p><span class="mushaf-welcome-rule"></span><button class="mushaf-page-read" data-begin>${tr('Begin with Al-Fatihah','الفاتحہ سے شروع کریں')} ${icon('arrow')}</button>`}<span class="mushaf-page-number">${tr('Opening','افتتاح')}</span></div>`;}
+  function openingPage(side){return `${corners()}<div class="mushaf-page-content mushaf-welcome"><div class="mushaf-page-heading-art">${star}</div>${side==='right'?`<span class="mushaf-page-small">${tr('IN THE NAME OF ALLAH','اللہ کے نام سے')}</span><h2 class="mushaf-bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ<br>الرَّحْمَٰنِ الرَّحِيمِ</h2><span class="mushaf-quran-title" lang="ar" dir="rtl">الْقُرْآنُ الْكَرِيمُ</span>`:`<span class="mushaf-page-small">${tr('114 SURAHS · 30 JUZ','۱۱۴ سورتیں · ۳۰ پارے')}</span><h2><span class="mushaf-hint-wide">${tr('A page for every Surah.','ہر سورت کے لیے ایک صفحہ۔')}</span><span class="mushaf-hint-compact">${tr('The Surah directory','سورتوں کی فہرست')}</span></h2><p><span class="mushaf-hint-wide">${tr('Click the left page for next pages and the right page for previous pages. Use Open Surah to read.','اگلے صفحات کے لیے بائیں صفحے اور پچھلے صفحات کے لیے دائیں صفحے پر کلک کریں۔ مطالعے کے لیے «سورت کھولیں» منتخب کریں۔')}</span><span class="mushaf-hint-compact">${tr('Left: next pages','بائیں: اگلے صفحات')}<br>${tr('Right: previous pages','دائیں: پچھلے صفحات')}</span></p><span class="mushaf-welcome-rule"></span><button class="mushaf-page-read" data-begin>${tr('Begin with Al-Fatihah','الفاتحہ سے شروع کریں')} ${icon('arrow')}</button>`}<span class="mushaf-page-number">${tr('Opening','افتتاح')}</span></div>`;}
   function surahPage(s){
     const juz=s.juz[0]===s.juz[1]?s.juz[0]:`${s.juz[0]}–${s.juz[1]}`;
     const labels=ur()?['آیات','نزول','پارہ','ترتیبِ نزول']:['Ayahs','Revelation','Juz','Revelation order'];
     const values=[s.total_verses,ur()?(s.type==='medinan'?'مدنی':'مکی'):(s.type==='medinan'?'Medinan':'Meccan'),juz,s.revelation_order];
-    return `${corners()}<div class="mushaf-page-content mushaf-surah-page"><div class="mushaf-chapter-kicker">${tr('SURAH','سورت')} ${String(s.id).padStart(3,'0')} <span>${star}</span></div><h2 class="mushaf-surah-arabic" lang="ar" dir="rtl">سُورَةُ ${esc(s.name)}</h2><h3>${esc(s.transliteration)}</h3><p class="mushaf-name-meaning">${esc(s.translation)}</p><div class="mushaf-metadata">${values.map((value,index)=>`<div><strong>${esc(value)}</strong><span>${labels[index]}</span></div>`).join('')}</div><div class="mushaf-leaf-details"><p class="mushaf-overview">${esc(s.overview||'')}</p><div class="mushaf-themes">${(s.themes||[]).map(theme=>`<span>${esc(theme)}</span>`).join('')}</div></div><button class="mushaf-page-read" data-read-surah="${s.id}" aria-label="${tr('Open Surah','سورت کھولیں')} ${esc(s.transliteration)}">${tr('Open Surah','سورت کھولیں')} ${icon('arrow')}</button><span class="mushaf-page-number">${arabicNumbers(s.id)}</span></div>`;
+    return `${corners()}<div class="mushaf-page-content mushaf-surah-page"><div class="mushaf-chapter-kicker">${tr('SURAH','سورت')} ${String(s.id).padStart(3,'0')} <span>${star}</span></div><h2 class="mushaf-surah-arabic" lang="ar" dir="rtl">سُورَةُ ${esc(s.name)}</h2><h3>${esc(s.transliteration)}</h3><p class="mushaf-name-meaning">${esc(s.translation)}</p><div class="mushaf-metadata">${values.map((value,index)=>`<div${index===1||index===3?' class="mushaf-supplementary-fact"':''}><strong>${esc(value)}</strong><span>${labels[index]}</span></div>`).join('')}</div><div class="mushaf-leaf-details"><p class="mushaf-overview">${esc(s.overview||'')}</p><div class="mushaf-themes">${(s.themes||[]).map(theme=>`<span>${esc(theme)}</span>`).join('')}</div></div><p class="mushaf-detail-hint">${tr('Open for full details and reading','تفصیلات اور مطالعے کے لیے کھولیں')}</p><button class="mushaf-page-read" data-read-surah="${s.id}" aria-label="${tr('Open Surah','سورت کھولیں')} ${esc(s.transliteration)}, ${tr('full details and reading','تفصیلات اور مطالعہ')}">${tr('Open Surah','سورت کھولیں')} ${icon('arrow')}</button><span class="mushaf-page-number">${arabicNumbers(s.id)}</span></div>`;
   }
   function pageClick(event,side){
     if(!state.opened||state.busy||drag||suppressClick)return;
@@ -102,7 +102,7 @@
   }
   function open(){mount();refresh();return getState();}
   function openCover(){mount();if(state.opened)return;state.opened=true;state.spread=0;state.focusedSurah=0;refresh();announce(tr('Book opened. Bismillah.','کتاب کھل گئی۔ بسم اللہ۔'));}
-  function stopFlip(){generation++;clearTimeout(flipTimer);const turning=state.busy;state.busy=false;if(mounted){$('mushaf-turn-leaf').classList.remove('is-turning');$('mushaf-turn-leaf').innerHTML='';if(turning)renderPage();}}
+  function stopFlip(){generation++;clearTimeout(flipTimer);globalThis.CompassBookAudio?.stop?.();const turning=state.busy;state.busy=false;if(mounted){$('mushaf-turn-leaf').classList.remove('is-turning');$('mushaf-turn-leaf').innerHTML='';if(turning)renderPage();}}
   function close(){cancelDrag();stopFlip();state.opened=false;state.spread=0;state.focusedSurah=0;resetTilt();if(mounted){refresh();announce(tr('Book closed.','کتاب بند ہو گئی۔'));}}
   function showSpread(spread,animate=true,focused=0){
     if(!Number.isInteger(spread)||spread<0||spread>57||state.busy&&animate)return false;
@@ -110,6 +110,7 @@
     const old=state.spread,previous={left:$('mushaf-left-page')?.innerHTML||'',right:$('mushaf-right-page')?.innerHTML||''};
     if(old===0&&spread>0&&!state.bookmark&&!state.ribbonParked){state.ribbonParked=true;persistBookmark();}
     state.spread=spread;state.focusedSurah=focused||(spread?(spread-1)*2+1:0);renderPage();
+    if(old!==spread&&animate&&state.opened)globalThis.CompassBookAudio?.turn?.();
     if(old!==spread&&animate&&!reduced()&&state.opened){
       const forward=spread>old,leaf=$('mushaf-turn-leaf'),fromSide=forward?'left':'right',toSide=forward?'right':'left',destination=$('mushaf-'+toSide+'-page').innerHTML;
       state.busy=true;const token=++generation,page=$('mushaf-'+fromSide+'-page'),width=page.offsetWidth||page.getBoundingClientRect().width,height=page.offsetHeight||page.getBoundingClientRect().height,stripWidth=width/CURL_STRIPS;
@@ -130,10 +131,13 @@
   }
   function scheduleFit(){if(typeof requestAnimationFrame==='function')requestAnimationFrame(fitPages);else fitPages();}
   function fitPages(){
-    if(!mounted||state.busy)return;const stage=$('mushaf-stage'),minimum=typeof getComputedStyle==='function'?parseFloat(getComputedStyle(stage).getPropertyValue('--book-min-height'))||560:560;
+    if(!mounted||state.busy)return;const stage=$('mushaf-stage'),styles=typeof getComputedStyle==='function'?getComputedStyle(stage):null,minimum=parseFloat(styles?.getPropertyValue('--book-min-height'))||520,maximum=Math.max(minimum,parseFloat(styles?.getPropertyValue('--book-max-height'))||560);
+    stage.classList.remove('is-compact-spread');
     stage.style.setProperty('--book-height',minimum+'px');
     const natural=Math.max($('mushaf-left-page').scrollHeight||0,$('mushaf-right-page').scrollHeight||0);
-    if(natural>minimum-8)stage.style.setProperty('--book-height',Math.ceil(natural+18)+'px');positionRibbon();
+    if(natural>maximum-8)stage.classList.add('is-compact-spread');
+    const fitted=Math.max($('mushaf-left-page').scrollHeight||0,$('mushaf-right-page').scrollHeight||0);
+    stage.style.setProperty('--book-height',clamp(Math.ceil(fitted+12),minimum,maximum)+'px');positionRibbon();
   }
   function turn(direction){if(!state.opened){openCover();return;}if(drag)return;showSpread(state.spread+direction);}
   function goToSurah(id){const number=Number(id);if(!Number.isInteger(number)||number<1||number>114)return false;mount();cancelDrag();stopFlip();state.opened=true;return showSpread(Math.ceil(number/2),false,number);}
@@ -179,7 +183,7 @@
     for(const side of ['right','left']){const page=$('mushaf-'+side+'-page'),r=page.getBoundingClientRect();if(event.clientX>=r.left&&event.clientX<=r.right&&event.clientY>=r.top&&event.clientY<=r.bottom){const id=Number(page.dataset.surah);if(id>0)target={id,x:(event.clientX-r.left)/r.width,y:(event.clientY-r.top)/r.height};break;}}
     target?setBookmark(target.id,target.x,target.y):removeBookmark();renderBookmark();if(!reduced())$('mushaf-ribbon').classList.add('is-settling');setTimeout(()=>{suppressClick=false;$('mushaf-ribbon').classList.remove('is-settling');},480);
   }
-  function cancelDrag(event){if(!drag)return;if(event&&event.pointerId!==undefined&&event.pointerId!==drag.pointerId)return;const held=drag;drag=null;state.bookmark=held.bookmark;state.ribbonParked=held.parked;$('mushaf-stage').classList.remove('is-ribbon-dragging');try{$('mushaf-ribbon').releasePointerCapture?.(held.pointerId);}catch{}renderBookmark();suppressClick=false;}
+  function cancelDrag(event){if(!drag)return;if(event&&event.pointerId!==undefined&&event.pointerId!==drag.pointerId)return;globalThis.CompassBookAudio?.stop?.();const held=drag;drag=null;state.bookmark=held.bookmark;state.ribbonParked=held.parked;$('mushaf-stage').classList.remove('is-ribbon-dragging');try{$('mushaf-ribbon').releasePointerCapture?.(held.pointerId);}catch{}renderBookmark();suppressClick=false;}
   function getState(){return {opened:state.opened,page:state.focusedSurah,surahId:state.focusedSurah||null,leftSurah:leftId()||null,rightSurah:rightId()||null,spread:state.spread,busy:state.busy,bookmark:state.bookmark?{...state.bookmark}:null,ribbonParked:state.ribbonParked};}
   function getPreferences(){return {[KEY]:JSON.stringify(state.bookmark?{version:1,...state.bookmark}:{version:1,parked:state.ribbonParked})};}
   function applyPreferences(values){let saved;try{saved=JSON.parse(values?.[KEY]);}catch{return false;}if(saved?.version!==1)return false;const valid=typeof saved.parked==='boolean'&&!Object.hasOwn(saved,'surahId')||Number.isInteger(saved.surahId)&&saved.surahId>=1&&saved.surahId<=114&&Number.isFinite(saved.x)&&saved.x>=.05&&saved.x<=.95&&Number.isFinite(saved.y)&&saved.y>=.03&&saved.y<=.8;if(!valid)return false;cancelDrag();state.bookmark=Object.hasOwn(saved,'surahId')?{surahId:saved.surahId,x:saved.x,y:saved.y}:null;state.ribbonParked=!state.bookmark&&saved.parked===true;renderBookmark();return true;}

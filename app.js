@@ -13,6 +13,8 @@
   // Persist only inside a locked reservation, so opening a tab cannot overwrite a spin.
   let saved = new Set((() => { const value = read(SAVE_KEY, []); return Array.isArray(value) ? value.filter(id => Number.isInteger(id) && id > 0 && id <= 114) : []; })());
   let view = 'discover';
+  const APP_VIEWS=['discover','mushaf','library','saved','reader','journey','settings'];
+  let activeRouteKey=null,openedReaderRoute=null,mushafHydrated=false;
   let currentSurah = null;
   let spinning = false;
   let rotation = 0;
@@ -125,26 +127,52 @@
   $('spin-button').addEventListener('click',spin);$('discover-spin').addEventListener('click',spin);
   $('last-surah').addEventListener('click',()=>openSurah(cycle.state.history.at(-1)));
 
-  function setView(next,options={}) {
+  function isCloudFragment(hash=location.hash){return /(?:^#|&)(?:access_token|refresh_token|error|error_code|error_description)=/i.test(hash);}
+  function parseAppRoute(hash=location.hash){
+    if(!hash||hash==='#')return {view:'discover',options:{}};
+    if(isCloudFragment(hash))return null;
+    const parts=hash.slice(1).split('/'),name=parts[0];if(!APP_VIEWS.includes(name))return null;
+    if(name!=='reader')return parts.length===1?{view:name,options:{}}:null;
+    if(parts.length===1)return {view:name,options:{}};
+    if(parts.length>3||!/^\d{1,3}$/.test(parts[1]))return null;
+    const id=Number(parts[1]);if(id<1||id>114)return null;
+    const options={surahId:id};if(parts.length===3){if(!/^\d{1,3}$/.test(parts[2]))return null;const ayah=Number(parts[2]);if(ayah<1||ayah>getSurah(id).total_verses)return null;options.ayah=ayah;}
+    return {view:name,options};
+  }
+  function focusView(){
+    const section=$(['library','saved'].includes(view)?'library-view':view+'-view');
+    const target=section?.querySelector?.('h1')||$('main-content')||section;
+    if(target?.focus){target.setAttribute('tabindex','-1');target.focus({preventScroll:true});}
+  }
+  function setView(next,options={},navigation={}) {
     const previous=view;
-    if(next!=='discover')globalThis.CompassSpinAudio?.stop();
-    view=['discover','mushaf','library','saved','reader','journey','settings'].includes(next)?next:'discover';
+    const previousSection=$(['library','saved'].includes(previous)?'library-view':previous+'-view'),focusedInPrevious=previousSection?.contains?.(document.activeElement);
+    view=APP_VIEWS.includes(next)?next:'discover';
+    if(view==='reader'){const last=globalThis.CompanionStore?.snapshot().lastRead,provided=Number.isInteger(Number(options.surahId))&&Number(options.surahId)>=1&&Number(options.surahId)<=114;const id=provided?Number(options.surahId):last?.surahId||1;const requested=Number(options.ayah)||(provided?globalThis.CompanionStore?.status(id).lastAyah:last?.ayah)||1;const ayah=Number.isInteger(requested)?Math.max(1,Math.min(getSurah(id).total_verses,requested)):1;options={surahId:id,ayah};}
+    const routeKey=view+(view==='reader'?'/'+options.surahId+'/'+options.ayah:''),changed=routeKey!==activeRouteKey;
+    activeRouteKey=routeKey;
+    if(changed&&view!=='discover')globalThis.CompassSpinAudio?.stop();
     $('discover-view').hidden=view!=='discover';$('library-view').hidden=view==='discover';
     $('library-view').hidden=!['library','saved'].includes(view);
     $('mushaf-view').hidden=view!=='mushaf';
     $('reader-view').hidden=view!=='reader';$('journey-view').hidden=view!=='journey';$('settings-view').hidden=view!=='settings';
-    document.querySelectorAll('[data-view]').forEach(button=>button.classList.toggle('active',button.dataset.view===view));
+    document.querySelectorAll('[data-view]').forEach(button=>{const active=button.dataset.view===view;button.classList.toggle('active',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
     if(['library','saved'].includes(view)){$('library-title').innerHTML=language()==='ur'?(view==='saved'?'دل کے قریب<br><em>محفوظ سورتیں۔</em>':'ہر سورت،<br><em>ایک دعوت۔</em>'):(view==='saved'?'Keep a chapter<br><em>close to your heart.</em>':'Every chapter,<br><em>an invitation.</em>');$('library-description').textContent=language()==='ur'?'سورتوں، آیات اور موضوعات میں تلاش کریں۔':view==='saved'?'Your saved Surahs, ready whenever you are.':'Browse chapters, search ayahs, or explore a topic.';renderLibrary();}
-    if(view==='reader'){const last=globalThis.CompanionStore?.snapshot().lastRead;const provided=Number.isInteger(Number(options.surahId))&&Number(options.surahId)>=1&&Number(options.surahId)<=114;const id=provided?Number(options.surahId):last?.surahId||1;const ayah=Number(options.ayah)||(provided?globalThis.CompanionStore?.status(id).lastAyah:last?.ayah)||1;globalThis.CompassReader?.open(id,ayah);options={surahId:id,ayah};}
-    if(view==='mushaf')globalThis.CompassMushaf?.open();
-    if(previous==='reader'&&view!=='reader'){globalThis.CompassReader?.stopAudio();globalThis.CompassReader?.exitFocus();}
+    if(view==='reader'&&(changed||openedReaderRoute!==routeKey)&&globalThis.CompassReader?.open){globalThis.CompassReader.open(options.surahId,options.ayah);openedReaderRoute=routeKey;}
+    if(view==='mushaf'&&(changed||!mushafHydrated)&&globalThis.CompassMushaf?.open){globalThis.CompassMushaf.open();mushafHydrated=true;}
+    if(previous==='reader'&&view!=='reader'){openedReaderRoute=null;globalThis.CompassReader?.stopAudio();globalThis.CompassReader?.exitFocus();}
+    if(view!=='mushaf')mushafHydrated=false;
     if(['journey','settings'].includes(view))globalThis.CompanionLearning?.refresh();
     document.body.dataset.view=view;
-    if(window.dispatchEvent&&typeof CustomEvent!=='undefined')window.dispatchEvent(new CustomEvent('compass:navigation',{detail:{view}}));
-    if(!location.hash.includes('access_token=')&&!location.hash.includes('error_description='))try{history.replaceState(null,'',`#${view}${view==='reader'?'/'+options.surahId+'/'+options.ayah:''}`);}catch{}
+    if((changed||navigation.forceFocus)&&navigation.history!=='none'&&!isCloudFragment()&&location.hash!=='#'+routeKey)try{const method=navigation.history==='replace'||typeof history.pushState!=='function'?'replaceState':'pushState';history[method](null,'','#'+routeKey);}catch{}
+    if(changed&&window.dispatchEvent&&typeof CustomEvent!=='undefined')window.dispatchEvent(new CustomEvent('compass:navigation',{detail:{view}}));
+    if(navigation.focus&&(changed||navigation.forceFocus)||changed&&previous!==view&&focusedInPrevious)focusView();
   }
-  document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>setView(button.dataset.view)));
-  document.querySelector('.brand').addEventListener('click',event=>{event.preventDefault();setView('discover');});
+  function applyHashRoute({focus=false,initial=false}={}){const route=parseAppRoute();if(route)setView(route.view,route.options,{history:'none',focus});else if(initial&&activeRouteKey===null)setView('discover',{}, {history:'none'});}
+  window.addEventListener('hashchange',()=>applyHashRoute({focus:true}));window.addEventListener('popstate',()=>applyHashRoute({focus:true}));
+  document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',event=>{event.preventDefault?.();setView(button.dataset.view,{}, {focus:true,forceFocus:true});}));
+  document.querySelector('.brand').addEventListener('click',event=>{event.preventDefault();setView('discover',{}, {focus:true,forceFocus:true});});
+  $('skip-to-main')?.addEventListener('click',event=>{event.preventDefault();$('main-content')?.focus({preventScroll:true});});
   function normalize(value){return String(value).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f\u064B-\u065F\u0670\u06D6-\u06ED]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ـ/g,'').replace(/ى/g,'ي').replace(/[^a-z0-9\u0600-\u06FF]/g,'');}
   function renderLibrary() {
     const query=normalize($('surah-search').value),type=$('type-filter').value;
@@ -197,7 +225,7 @@
     if(!$('surah-dialog').open)showDialog('surah-dialog');
     $('surah-dialog').scrollTop=0;
   }
-  function navigateReader(id,ayah){document.querySelectorAll('dialog').forEach(dialog=>{if(dialog.open)dialog.close();});const state=globalThis.CompanionStore?.status(id);setView('reader',{surahId:id,ayah:ayah||state?.lastAyah||1});}
+  function navigateReader(id,ayah){document.querySelectorAll('dialog').forEach(dialog=>{if(dialog.open)dialog.close();});const state=globalThis.CompanionStore?.status(id);setView('reader',{surahId:id,ayah:ayah||state?.lastAyah||1},{focus:true});}
   $('detail-open-reader').addEventListener('click',()=>navigateReader(currentSurah));
   $('resume-home').addEventListener('click',()=>{const last=globalThis.CompanionStore?.snapshot().lastRead;if(last)navigateReader(last.surahId,last.ayah);});
   function setDetailTab(tab){const overview=tab==='overview';$('overview-tab').setAttribute('aria-selected',overview);$('reading-tab').setAttribute('aria-selected',!overview);$('overview-content').hidden=!overview;$('reading-content').hidden=overview;}
@@ -271,8 +299,8 @@
     const ur=language()==='ur';document.documentElement.lang=ur?'ur':'en';document.documentElement.dir=ur?'rtl':'ltr';
     document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
     $('ui-language-toggle').textContent=ur?'EN':'اردو';$('ui-language-toggle').setAttribute('aria-label',ur?'Switch interface to English':'انٹرفیس اردو میں کریں');
-    $('hero-title').innerHTML=ur?'ایک مختصر وقفہ۔<br><em>قرآن سے<br>گہرا تعلق۔</em>':'A little pause.<br><em>A deeper<br class="desktop-break"> connection.</em>';
-    $('intro-copy').innerHTML=ur?'قرآن کو جاننے، پڑھنے اور اس پر غور کرنے کا سفر۔ کمپاس گھمائیں، سورت دریافت کریں، پھر اپنی رفتار سے مطالعہ جاری رکھیں۔':'Let curiosity bring you closer to the Quran.<br class="desktop-break"> Discover, read, listen, and make<br class="desktop-break"> a little space for reflection.';
+    $('hero-title').innerHTML=ur?'قرآن کی تمام ۱۱۴<br><em>سورتیں دریافت کریں۔</em>':'Explore all 114<br><em>Surahs of the Quran.</em>';
+    $('intro-copy').innerHTML=ur?'بغیر تکرار کے کمپاس گھمائیں اور قرآن کی سورتیں دریافت کریں۔ سورتوں کا تعارف پڑھیں، پھر ریڈر میں درج شدہ ماخذ سے عربی متن، تراجم اور تلاوت شامل کریں۔':'Discover Quran Surahs with a repeat-free spin. Browse chapter introductions, then load sourced Arabic text, translations and recitation in the reader.';
     $('surah-search').placeholder=ur?'نام، آیت یا موضوع تلاش کریں…':'Search name, meaning, ayah, or topic…';
     const optionNames=ur?{all:'سب',meccan:'مکی',medinan:'مدنی',short:'مختصر · ۲۰ آیات تک',medium:'درمیانی · ۲۱ تا ۱۰۰ آیات',long:'طویل · ۱۰۰ سے زیادہ آیات',unread:'ابھی نہیں پڑھا',reading:'مطالعہ جاری',completed:'مکمل',quran:'قرآنی ترتیب',revelation:'ترتیبِ نزول',shortest:'مختصر پہلے'}:null;
     for(const id of ['spin-type','spin-length','spin-juz','spin-status','type-filter','library-juz','library-status','library-sort'])for(const option of $(id).options){if(!option.dataset.originalText)option.dataset.originalText=option.textContent;option.textContent=optionNames?optionNames[option.value]||`پارہ ${option.value}`:option.dataset.originalText;}
@@ -339,7 +367,8 @@
   globalThis.CompassApp={getQuran:()=>quran,getSources:()=>quranSources,navigate:setView,openSurah,downloadPack:downloadReadingPack,importPack:()=>$('pack-file').click(),toast,t,refreshUserState,exportPreferences,applyPreferences,install:installApp,view:()=>view};
   updateProgress();updateSaved();updateTheme();updatePackStatus();restorePack();
   const last=cycle.state.history.at(-1);if(last){rotation=handAngle(last);$('clock-hand').style.transform=`rotate(${rotation}deg)`;}
-  const route=location.hash.slice(1).split('/');setView(route[0],{surahId:Number(route[1]),ayah:Number(route[2])});
-  document.addEventListener('DOMContentLoaded',()=>{if(view==='reader')setView('reader',{surahId:Number(route[1]),ayah:Number(route[2])});if(view==='mushaf')globalThis.CompassMushaf?.open();});
+  applyHashRoute({initial:true});
+  // Deferred reader/book modules may become ready later. Hydrate the current URL, never a captured startup route.
+  document.addEventListener('DOMContentLoaded',()=>applyHashRoute({initial:true}));
   if(location.protocol!=='file:'&&'serviceWorker'in navigator){navigator.serviceWorker.register('./sw.js').then(async registration=>{const worker=registration.installing||registration.waiting;if(worker)worker.addEventListener('statechange',()=>{if(worker.state==='activated'){$('offline-indicator').title='App saved for offline visits';$('offline-indicator').lastChild.textContent=' Offline ready';}});else if(registration.active){$('offline-indicator').title='App saved for offline visits';$('offline-indicator').lastChild.textContent=' Offline ready';}}).catch(()=>{/* Direct file mode already works without a service worker. */});}
 })();
