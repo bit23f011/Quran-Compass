@@ -1,0 +1,49 @@
+/* Shared layout, with the supplied photograph confined to the home section. */
+:root{--page-gutter:28px;--header-offset:92px;--mobile-nav-height:72px;--mobile-nav-clearance:0px}
+html{scroll-padding-top:calc(var(--header-offset) + 16px)}
+body{min-width:320px}
+.site-shell,body[data-view=reader] .site-shell{width:100%;max-width:none;padding-inline:var(--page-gutter);margin:0}
+.site-header{position:sticky;top:0;z-index:100;min-height:92px;height:92px;padding:12px var(--page-gutter);margin-inline:calc(-1 * var(--page-gutter));background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 3px 14px #0000000b;gap:22px}
+.site-header .brand{font-size:25px;gap:11px}
+.site-header .brand small{font-size:9px;letter-spacing:1.3px}
+.site-header .brand-mark{width:54px;height:54px}
+.site-header nav{height:100%;gap:20px;min-width:0}
+.site-header .nav-link{min-height:44px;padding:8px 0}
+.site-header .nav-label{font-size:15px;font-weight:500}
+.site-header .header-actions{gap:9px;flex-shrink:0}
+.site-header .icon-button,.language-toggle{min-width:44px;min-height:44px}
+.install-app-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 13px;background:var(--soft);border:1px solid var(--line);border-radius:7px;color:var(--green);font-size:14px;white-space:nowrap}
+.install-app-button:hover{border-color:var(--gold)}
+.install-app-button .icon{height:18px;width:18px}
+main{min-height:calc(100svh - var(--header-offset) - 73px)}
+#discover-view{margin:0 calc(-1 * var(--page-gutter));padding:38px clamp(24px,4vw,72px) 42px;min-height:calc(100svh - var(--header-offset));border:0;border-radius:0;gap:clamp(28px,4vw,76px);grid-template-columns:minmax(320px,.9fr) minmax(0,1.1fr);background:#071a2e url('assets/home-islamic-bg.png') center right/cover no-repeat;overflow:hidden;isolation:isolate}
+#discover-view::before{content:'';position:absolute;inset:0;z-index:-1;display:block;background:#04152365;pointer-events:none}
+#discover-view .intro-panel{width:100%;max-width:570px;padding:0;justify-self:center}
+#discover-view .compass-panel{width:100%;max-width:760px;justify-self:center}
+#discover-view .wheel-wrap{width:100%;max-width:min(680px,64svh)}
+#discover-view h1{font-size:clamp(43px,4vw,67px)}
+#discover-view .intro-copy{font-size:19px;max-width:540px}
+#discover-view .progress-card{max-width:460px}
+#discover-view .spin-options{max-width:460px;width:100%}
+.library-view,.quran-reader-view,.journey-view,.settings-view{padding-top:26px}
+.library-heading h1,.learning-heading h1,.reader-page-heading h1{font-size:42px;margin-block:12px}
+.library-sticky-tools{position:sticky;top:var(--header-offset);z-index:15;background:var(--bg);padding:12px 0 3px;border-bottom:1px solid var(--line);margin:20px 0 22px}
+.library-sticky-tools .library-toolbar{margin:0 0 12px;flex-wrap:nowrap}
+.library-sticky-tools .library-filterbar{margin-bottom:12px}
+.library-sticky-tools .topic-explorer{margin-bottom:12px}
+.search-box{max-width:none}
+.reader-main{max-width:none}
+.reader-focus-active{z-index:120}
+.mushaf-navigation{position:sticky;top:var(--header-offset);z-index:20;background:var(--bg)}
+footer{min-height:73px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:24px;padding:18px 0;margin:0;background:var(--bg);font-size:14px;border-top:1px solid var(--line)}
+footer .text-button,footer .offline-indicator{font-size:14px;line-height:1.5}
+footer .text-button{min-height:36px}
+footer .offline-indicator{display:inline-flex}
+[dir=rtl] .site-header .nav-label{font-size:20px!important}
+@media(min-width:1600px){.surah-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.reader-layout{grid-template-columns:260px minmax(0,1fr);gap:28px}}
+@media(max-width:1250px){.site-header{gap:15px}.site-header .brand{font-size:23px}.site-header .brand small{font-size:8px}.site-header nav{gap:14px}.site-header .nav-label{font-size:14px}.install-app-button{width:44px;padding:0}.install-app-button span{display:none}}
+@media(max-width:1050px) and (min-width:641px){:root{--header-offset:130px;--page-gutter:24px}.site-header{height:130px;min-height:130px;padding:12px var(--page-gutter) 0;flex-wrap:wrap;gap:0}.site-header nav{position:static;order:3;width:100%;height:52px;justify-content:center;gap:28px}.site-header .header-actions{margin-inline-start:auto}.site-header .nav-label{font-size:15px}.install-app-button{width:auto;padding:9px 13px}.install-app-button span{display:inline}#discover-view{grid-template-columns:1fr;gap:36px;padding:32px var(--page-gutter) 38px;min-height:0}#discover-view .intro-panel{text-align:center;display:flex;align-items:center;flex-direction:column;max-width:640px}#discover-view .intro-copy{max-width:600px}#discover-view .compass-panel{max-width:700px}#discover-view .wheel-wrap{max-width:580px}#discover-view blockquote{display:none}}
+@media(max-width:640px){:root{--page-gutter:14px;--header-offset:78px}body{padding-bottom:calc(var(--mobile-nav-height) + env(safe-area-inset-bottom))}.site-header{height:78px;min-height:78px;padding:10px var(--page-gutter);flex-wrap:nowrap;gap:8px}.site-header .brand{font-size:19px;gap:7px}.site-header .brand-mark{width:43px;height:43px}.site-header .brand small{font-size:6.5px;letter-spacing:.6px}.site-header .header-actions{gap:4px}.site-header .icon-button{width:40px;height:44px;min-width:40px}.language-toggle{font-size:14px;min-width:36px;padding:8px 2px}.install-app-button{width:40px;min-width:40px;height:44px;padding:0}.install-app-button span{display:none}.site-header nav{position:fixed;inset:auto 0 0;order:initial;height:calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));padding:6px 4px calc(8px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;z-index:101}.site-header .nav-link{min-height:44px;height:auto;gap:4px;padding:4px 0;flex-direction:column}.site-header .nav-label{font-size:10px}.site-header .nav-link>.icon,.site-header .saved-nav>.icon{display:block;height:21px;width:21px}.site-header .nav-link.active{background:var(--soft)}.site-header .nav-link.active:after{display:none}[dir=rtl] .site-header .nav-label{font-size:14px!important}#discover-view{display:flex;flex-direction:column;gap:32px;padding:22px var(--page-gutter) 32px;min-height:calc(100svh - var(--header-offset));background-position:62% top;background-size:auto 900px;background-color:#071a2e}#discover-view::before{background:#04152369}#discover-view .compass-panel{order:0;margin:0;width:100%;max-width:480px}#discover-view .intro-panel{order:1;max-width:480px;text-align:center;display:flex;flex-direction:column;align-items:center}#discover-view .wheel-wrap{width:100%;max-width:460px}#discover-view h1{font-size:42px;line-height:1.2}#discover-view .intro-copy{font-size:17px;line-height:1.9}#discover-view blockquote{display:none}.library-heading h1,.learning-heading h1,.reader-page-heading h1{font-size:34px}.library-heading p{margin-bottom:10px}.library-view,.quran-reader-view{padding-top:20px}.library-sticky-tools{margin-top:14px;padding-top:10px}.library-filterbar{gap:7px}.library-sticky-tools .topic-explorer{max-height:90px;overflow:auto}.library-sticky-tools .library-toolbar>span{width:auto;white-space:nowrap}.library-sticky-tools .search-box{min-height:48px}.search-box kbd{display:none}footer{gap:10px 17px;flex-wrap:wrap;font-size:12px;padding:16px 0}footer .text-button,footer .offline-indicator{font-size:12px}footer .text-button{min-height:32px}}
+@media(max-width:360px){.site-header .brand{font-size:17px}.site-header .brand-mark{width:36px;height:36px}.site-header .brand small{font-size:6px}.site-header .header-actions{gap:2px}.language-toggle{min-width:30px}.site-header .icon-button,.install-app-button{width:36px;min-width:36px}}
+@media(max-width:700px){.quran-reader-view .reader-audio-bar{bottom:calc(var(--mobile-nav-clearance) + env(safe-area-inset-bottom,0px) + 8px)}.reader-focus-active .reader-audio-bar{bottom:calc(12px + env(safe-area-inset-bottom,0px));margin:0}}
+@media(max-width:640px){:root{--mobile-nav-clearance:var(--mobile-nav-height)}}

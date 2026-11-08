@@ -1,0 +1,11 @@
+dist/
+node_modules/
+.vercel/
+*.log
+*.zip
+
+# Reference artwork and superseded book/stand assets are kept locally.
+assets/reference-*
+assets/rehal-*
+assets/mushaf-reference-grid.jpg
+assets/book-cover-photo.jpg
